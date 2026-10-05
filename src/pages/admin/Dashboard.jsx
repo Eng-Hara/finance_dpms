@@ -54,10 +54,10 @@ export default function Dashboard() {
 
   const cards = summary
     ? [
-        { label: 'Total Employees', value: summary.total_employees, icon: Users, color: 'text-blue-600 bg-blue-50' },
-        { label: 'Active Employees', value: summary.active_employees, icon: UserCheck, color: 'text-green-600 bg-green-50' },
+        { label: 'Total Members', value: summary.total_employees, icon: Users, color: 'text-blue-600 bg-blue-50' },
+        { label: 'Active Members', value: summary.active_employees, icon: UserCheck, color: 'text-green-600 bg-green-50' },
         { label: 'Paid This Month', value: summary.paid_count, icon: UserCheck, color: 'text-emerald-600 bg-emerald-50' },
-        { label: 'Unpaid This Month', value: summary.unpaid_count, icon: UserX, color: 'text-red-600 bg-red-50' },
+        { label: 'Dadka anbixin bishaan', value: summary.unpaid_count, icon: UserX, color: 'text-red-600 bg-red-50' },
         { label: 'Expected', value: formatCurrency(summary.expected_amount), icon: DollarSign, color: 'text-slate-600 bg-slate-100' },
         { label: 'Collected', value: formatCurrency(summary.collected_amount), icon: TrendingUp, color: 'text-green-600 bg-green-50' },
         { label: 'Remaining', value: formatCurrency(summary.remaining_amount), icon: AlertCircle, color: 'text-amber-600 bg-amber-50' },

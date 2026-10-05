@@ -17,11 +17,11 @@ export async function listAuditLogs({ page = 1, action = '', search = '' }) {
 }
 
 export async function logAction({ action, entityType, entityId, description }) {
-  const { error } = await supabase.from('audit_logs').insert({
-    action,
-    entity_type: entityType,
-    entity_id: entityId,
-    description,
+  const { error } = await supabase.rpc('log_audit_action', {
+    p_action: action,
+    p_entity_type: entityType || null,
+    p_entity_id: entityId || null,
+    p_description: description || null,
   })
-  if (error) console.error('Audit log failed:', error)
+  if (error) throw error
 }

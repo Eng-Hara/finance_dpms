@@ -15,7 +15,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import {
   listPayments, createPayment, updatePayment, deletePayment,
 } from '@/services/paymentService'
-import { listEmployees } from '@/services/employeeService'
+import { listPaymentEmployeeOptions } from '@/services/employeeService'
 import { MONTHS, PAYMENT_STATUS } from '@/utils/constants'
 import { formatCurrency, formatMonthYear, formatDate } from '@/utils/formatters'
 import { validatePayment } from '@/utils/validators'
@@ -24,7 +24,7 @@ const now = new Date()
 
 export default function Payments() {
   const toast = useToast()
-  const { profile } = useAuth()
+  const { profile, role } = useAuth()
   const [month, setMonth] = useState('')
   const [year, setYear] = useState(now.getFullYear())
   const [status, setStatus] = useState('')
@@ -57,6 +57,7 @@ export default function Payments() {
         month: month || undefined,
         year: year || undefined,
         status: status || undefined,
+        search: debouncedSearch,
         page,
       })
       setData(res.data || [])
@@ -69,15 +70,21 @@ export default function Payments() {
   }
 
   useEffect(() => { setPage(1) }, [month, year, status, debouncedSearch])
-  useEffect(() => { load() }, [month, year, status, page])
+  useEffect(() => { load() }, [month, year, status, debouncedSearch, page])
 
   useEffect(() => {
+    let active = true
     const loadEmp = async () => {
-      const res = await listEmployees({ page: 1 })
-      setEmployees(res.data || [])
+      try {
+        const results = await listPaymentEmployeeOptions()
+        if (active) setEmployees(results || [])
+      } catch (err) {
+        if (active) toast.error('Failed to load employees for payment entry')
+      }
     }
     loadEmp()
-  }, [])
+    return () => { active = false }
+  }, [toast])
 
   const openCreate = () => {
     setEditing(null)
@@ -125,7 +132,8 @@ export default function Payments() {
         recorded_by: profile?.id,
       }
       if (editing) {
-        await updatePayment(editing.id, payload)
+        const { employee_id: _e, month: _m, year: _y, ...updatePayload } = payload
+        await updatePayment(editing.id, updatePayload)
         toast.success('Payment updated successfully')
       } else {
         await createPayment(payload)
@@ -242,9 +250,11 @@ export default function Payments() {
                           <button onClick={() => openEdit(p)} className="rounded p-1.5 hover:bg-slate-100">
                             <Edit3 className="w-4 h-4 text-slate-500" />
                           </button>
-                          <button onClick={() => setConfirm(p)} className="rounded p-1.5 hover:bg-red-50">
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
+                          {role === 'SUPER_ADMIN' && (
+                            <button onClick={() => setConfirm(p)} className="rounded p-1.5 hover:bg-red-50">
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

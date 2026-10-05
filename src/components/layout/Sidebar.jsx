@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, Users, CreditCard, FileText, ScrollText,
-  Settings, User, LogOut, X, Wallet,
+  Settings, User, LogOut, X, Wallet, UserRoundCog,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { ROLES } from '@/utils/constants'
@@ -13,6 +13,7 @@ const adminNav = [
   { to: '/admin/reports', label: 'Reports', icon: FileText },
   { to: '/admin/audit-logs', label: 'Audit Logs', icon: ScrollText, superOnly: true },
   { to: '/admin/settings', label: 'Settings', icon: Settings, superOnly: true },
+  { to: '/admin/users', label: 'User Roles', icon: UserRoundCog, superOnly: true },
 ]
 
 const employeeNav = [
@@ -34,17 +35,17 @@ export default function Sidebar({ open, onClose }) {
         <div className="fixed inset-0 z-40 bg-slate-900/50 lg:hidden" onClick={onClose} />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white border-r border-slate-200 transition-transform lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform border-r border-slate-200 bg-white/90 shadow-lg shadow-slate-200/60 backdrop-blur transition-transform lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+        <div className="flex h-16 items-center justify-between border-b border-slate-200 bg-gradient-to-r from-brand-700 to-brand-600 px-5 text-white">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-brand-600 p-1.5">
-              <Wallet className="w-5 h-5 text-white" />
+            <div className="rounded-lg bg-white/15 p-1.5">
+              <Wallet className="h-5 w-5 text-white" />
             </div>
-            <span className="font-semibold text-slate-900">Contribution</span>
+            <span className="font-semibold">Contribution</span>
           </div>
           <button onClick={onClose} className="lg:hidden">
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="h-5 w-5 text-white/90" />
           </button>
         </div>
 
@@ -55,34 +56,34 @@ export default function Sidebar({ open, onClose }) {
               to={item.to}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700'
+                    ? 'bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-100'
                     : 'text-slate-600 hover:bg-slate-100'
                 }`
               }
             >
-              <item.icon className="w-4 h-4" />
+              <item.icon className="h-4 w-4" />
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200 p-3">
-          <div className="mb-2 px-3">
-            <p className="text-sm font-medium text-slate-900 truncate">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-slate-200 bg-slate-50/80 p-3">
+          <div className="mb-2 rounded-xl bg-white p-3 shadow-sm ring-1 ring-slate-100">
+            <p className="truncate text-sm font-semibold text-slate-900">
               {profile?.full_name || 'User'}
             </p>
-            <p className="text-xs text-slate-500 truncate">{profile?.email}</p>
-            <span className="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+            <p className="truncate text-xs text-slate-500">{profile?.email}</p>
+            <span className="mt-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
               {role}
             </span>
           </div>
           <button
             onClick={signOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="h-4 w-4" />
             Sign Out
           </button>
         </div>

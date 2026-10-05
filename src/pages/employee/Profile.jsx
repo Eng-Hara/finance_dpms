@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Card, { CardBody, CardHeader } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Skeleton from '@/components/ui/Skeleton'
+import Button from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { getEmployee } from '@/services/employeeService'
 import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -10,24 +11,33 @@ export default function Profile() {
   const { profile } = useAuth()
   const [employee, setEmployee] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
+    let active = true
     const load = async () => {
       if (!profile?.employee_id) {
-        setLoading(false)
+        if (active) {
+          setEmployee(null)
+          setLoading(false)
+        }
         return
       }
+      setLoading(true)
+      setError('')
       try {
         const data = await getEmployee(profile.employee_id)
-        setEmployee(data)
-      } catch (e) {
-        console.error(e)
+        if (active) setEmployee(data)
+      } catch (error) {
+        if (active) setError(error.message || 'Unable to load your employee record.')
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
     load()
-  }, [profile])
+    return () => { active = false }
+  }, [profile?.employee_id, retryKey])
 
   if (loading) {
     return (
@@ -38,8 +48,24 @@ export default function Profile() {
   if (!employee) {
     return (
       <Card>
-        <CardBody>
-          <p className="text-sm text-slate-600">No employee record linked to your account.</p>
+        <CardBody className="space-y-3">
+          {error ? (
+            <>
+              <p role="alert" className="text-sm text-red-700">
+                Could not load your Memeber record: {error}
+              </p>
+              <Button size="sm" variant="secondary" onClick={() => setRetryKey((key) => key + 1)}>
+                Try again
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2 className="font-semibold text-slate-900">Member account not linked</h2>
+              <p className="text-sm text-slate-600">
+                Ask a Super Admin to link your login to your Member record from User Roles.
+              </p>
+            </>
+          )}
         </CardBody>
       </Card>
     )

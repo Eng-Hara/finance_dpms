@@ -15,7 +15,9 @@ export const validateEmployee = (data) => {
   if (phoneErr) errors.phone = phoneErr
   if (data.monthly_amount != null) {
     const amt = Number(data.monthly_amount)
-    if (isNaN(amt) || amt < 0) errors.monthly_amount = 'Invalid amount'
+    if (!Number.isFinite(amt) || amt < 2 || amt > 5) {
+      errors.monthly_amount = 'Monthly amount must be between $2 and $5'
+    }
   }
   return errors
 }
@@ -26,9 +28,18 @@ export const validatePayment = (data) => {
   if (!data.month) errors.month = 'Month is required'
   if (!data.year) errors.year = 'Year is required'
   const amt = Number(data.amount)
-  if (isNaN(amt) || amt < 0) errors.amount = 'Amount must be positive'
+  if (!Number.isFinite(amt) || amt < 0) errors.amount = 'Amount must be zero or greater'
   if (!['PAID', 'UNPAID', 'PARTIAL'].includes(data.status)) {
     errors.status = 'Invalid status'
+  }
+  if (data.status === 'UNPAID' && amt !== 0) {
+    errors.amount = 'Unpaid contributions must have an amount of zero'
+  }
+  if (data.status === 'PARTIAL' && amt <= 0) {
+    errors.amount = 'Partial contributions must have an amount greater than zero'
+  }
+  if (data.status === 'PAID' && amt <= 0) {
+    errors.amount = 'Paid contributions must have an amount greater than zero'
   }
   return errors
 }

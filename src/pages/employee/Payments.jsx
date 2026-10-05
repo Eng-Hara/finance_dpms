@@ -3,6 +3,7 @@ import Card, { CardBody, CardHeader } from '@/components/ui/Card'
 import Badge from '@/components/ui/Badge'
 import Skeleton from '@/components/ui/Skeleton'
 import EmptyState from '@/components/ui/EmptyState'
+import Button from '@/components/ui/Button'
 import { useAuth } from '@/contexts/AuthContext'
 import { getEmployeePaymentHistory } from '@/services/paymentService'
 import { formatCurrency, formatMonthYear, formatDate } from '@/utils/formatters'
@@ -11,24 +12,33 @@ export default function MyPayments() {
   const { profile } = useAuth()
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [retryKey, setRetryKey] = useState(0)
 
   useEffect(() => {
+    let active = true
     const load = async () => {
       if (!profile?.employee_id) {
-        setLoading(false)
+        if (active) {
+          setPayments([])
+          setLoading(false)
+        }
         return
       }
+      setLoading(true)
+      setError('')
       try {
         const data = await getEmployeePaymentHistory(profile.employee_id)
-        setPayments(data)
-      } catch (e) {
-        console.error(e)
+        if (active) setPayments(data)
+      } catch (error) {
+        if (active) setError(error.message || 'Unable to load your payment history.')
       } finally {
-        setLoading(false)
+        if (active) setLoading(false)
       }
     }
     load()
-  }, [profile])
+    return () => { active = false }
+  }, [profile?.employee_id, retryKey])
 
   return (
     <div className="space-y-5">
@@ -38,7 +48,19 @@ export default function MyPayments() {
       </div>
 
       <Card>
-        {loading ? (
+        {!profile?.employee_id ? (
+          <EmptyState
+            title="Employee account not linked"
+            description="Ask a Super Admin to link your login to your employee record from User Roles."
+          />
+        ) : error ? (
+          <div role="alert" className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-red-700">Could not load your payment history: {error}</p>
+            <Button size="sm" variant="secondary" onClick={() => setRetryKey((key) => key + 1)}>
+              Try again
+            </Button>
+          </div>
+        ) : loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
           </div>

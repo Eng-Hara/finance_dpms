@@ -1,13 +1,29 @@
 import { supabase } from '@/lib/supabase'
 import { PAGE_SIZE } from '@/utils/constants'
 
+async function findEmployeeIds(search) {
+  const columns = ['full_name', 'phone', 'employee_code']
+  const results = await Promise.all(
+    columns.map((column) =>
+      supabase
+        .from('employees')
+        .select('id')
+        .ilike(column, `%${search}%`)
+    )
+  )
+
+  const failed = results.find(({ error }) => error)
+  if (failed) throw failed.error
+  return [...new Set(results.flatMap(({ data }) => (data || []).map(({ id }) => id)))]
+}
+
 export async function listEmployees({ search = '', status = '', page = 1 }) {
   let query = supabase.from('employees').select('*', { count: 'exact' })
 
   if (search) {
-    query = query.or(
-      `full_name.ilike.%${search}%,phone.ilike.%${search}%,employee_code.ilike.%${search}%`
-    )
+    const employeeIds = await findEmployeeIds(search)
+    if (!employeeIds.length) return { data: [], count: 0, totalPages: 0 }
+    query = query.in('id', employeeIds)
   }
   if (status) query = query.eq('status', status)
 
@@ -20,6 +36,17 @@ export async function listEmployees({ search = '', status = '', page = 1 }) {
 
   if (error) throw error
   return { data, count, totalPages: Math.ceil((count || 0) / PAGE_SIZE) }
+}
+
+export async function listPaymentEmployeeOptions() {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('id, employee_code, full_name, monthly_amount')
+    .eq('status', 'ACTIVE')
+    .order('full_name', { ascending: true })
+
+  if (error) throw error
+  return data
 }
 
 export async function getEmployee(id) {

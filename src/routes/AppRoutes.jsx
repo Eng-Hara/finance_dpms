@@ -11,6 +11,10 @@ import AdminDashboard from '@/pages/admin/Dashboard'
 import AdminEmployees from '@/pages/admin/Employees'
 import AdminPayments from '@/pages/admin/Payments'
 import AdminReports from '@/pages/admin/Reports'
+import AdminSettings from '@/pages/admin/Settings'
+import AdminAuditLogs from '@/pages/admin/AuditLogs'
+import AdminUserRoles from '@/pages/admin/UserRoles'
+import AdminEmployeeDetails from '@/pages/admin/EmployeeDetails'
 
 import EmployeeDashboard from '@/pages/employee/Dashboard'
 import EmployeePayments from '@/pages/employee/Payments'
@@ -19,10 +23,10 @@ import EmployeeProfile from '@/pages/employee/Profile'
 function RootRedirect() {
   const { user, profile, loading } = useAuth()
   if (loading) return null
-  if (!user) return <Navigate to="/login" replace />
+  if (!user || !profile || profile.status === 'DISABLED') return <Navigate to="/login" replace />
   return (
     <Navigate
-      to={profile?.role === ROLES.EMPLOYEE ? '/employee/dashboard' : '/admin/dashboard'}
+      to={profile.role === ROLES.EMPLOYEE ? '/employee/dashboard' : '/admin/dashboard'}
       replace
     />
   )
@@ -36,17 +40,18 @@ export default function AppRoutes() {
 
       {/* Admin / Super Admin routes */}
       <Route element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ADMIN]} />}>
-        <Route element={<Layout><></></Layout>}>
-          {/* We render children via Outlet pattern */}
-        </Route>
-      </Route>
-
-      <Route element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ADMIN]} />}>
         <Route path="/admin" element={<Layout><Outlet /></Layout>}>
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="employees" element={<AdminEmployees />} />
+          <Route path="employees/:employeeId" element={<AdminEmployeeDetails />} />
           <Route path="payments" element={<AdminPayments />} />
           <Route path="reports" element={<AdminReports />} />
+          <Route element={<ProtectedRoute allowedRoles={[ROLES.SUPER_ADMIN]} />}>
+            <Route path="audit-logs" element={<AdminAuditLogs />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="users" element={<AdminUserRoles />} />
+          </Route>
         </Route>
       </Route>
 

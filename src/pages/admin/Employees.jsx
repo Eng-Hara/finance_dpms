@@ -133,10 +133,10 @@ export default function Employees() {
     <div className="space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Employees</h1>
-          <p className="text-sm text-slate-500">Manage employee records</p>
+          <h1 className="text-2xl font-bold text-slate-900">Members</h1>
+          <p className="text-sm text-slate-500">Manage member records</p>
         </div>
-        <Button icon={Plus} onClick={openCreate}>Add Employee</Button>
+        <Button icon={Plus} onClick={openCreate}>Add Member</Button>
       </div>
 
       <Card>
@@ -166,9 +166,9 @@ export default function Employees() {
           </div>
         ) : data.length === 0 ? (
           <EmptyState
-            title="No employees found"
-            description="Try adjusting your search or add a new employee."
-            action={<Button icon={Plus} onClick={openCreate}>Add Employee</Button>}
+            title="No member found"
+            description="Try adjusting your search or add a new Member."
+            action={<Button icon={Plus} onClick={openCreate}>Add Member</Button>}
           />
         ) : (
           <>
@@ -176,10 +176,10 @@ export default function Employees() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Employee ID</th>
+                    <th className="px-4 py-3 font-medium">Member ID</th>
                     <th className="px-4 py-3 font-medium">Name</th>
                     <th className="px-4 py-3 font-medium">Phone</th>
-                    <th className="px-4 py-3 font-medium">Department</th>
+                    <th className="px-4 py-3 font-medium">Family</th>
                     <th className="px-4 py-3 font-medium">Monthly</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -246,7 +246,7 @@ export default function Employees() {
           <>
             <Button variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
             <Button onClick={handleSave} loading={saving}>
-              {editing ? 'Save Changes' : 'Create Employee'}
+              {editing ? 'Save Changes' : 'Create member'}
             </Button>
           </>
         }
@@ -280,7 +280,7 @@ export default function Employees() {
             placeholder="Mogadishu"
           />
           <Input
-            label="Department"
+            label="Family"
             value={form.department}
             onChange={(e) => setForm({ ...form, department: e.target.value })}
             placeholder="Finance"

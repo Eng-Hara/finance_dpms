@@ -1,10 +1,29 @@
 import { supabase } from '@/lib/supabase'
 import { PAGE_SIZE } from '@/utils/constants'
 
-export async function listPayments({ month, year, status, employeeId, page = 1 }) {
+export async function listPayments({ month, year, status, employeeId, search = '', page = 1 }) {
   let query = supabase
     .from('payments')
     .select('*, employees(full_name, employee_code, phone)', { count: 'exact' })
+
+  if (search) {
+    const employeeColumns = ['full_name', 'phone', 'employee_code']
+    const employeeResults = await Promise.all(
+      employeeColumns.map((column) =>
+        supabase
+          .from('employees')
+          .select('id')
+          .ilike(column, `%${search}%`)
+      )
+    )
+    const failed = employeeResults.find(({ error }) => error)
+    if (failed) throw failed.error
+    const employeeIds = [
+      ...new Set(employeeResults.flatMap(({ data }) => (data || []).map(({ id }) => id))),
+    ]
+    if (!employeeIds.length) return { data: [], count: 0, totalPages: 0 }
+    query = query.in('employee_id', employeeIds)
+  }
 
   if (month) query = query.eq('month', month)
   if (year) query = query.eq('year', year)
@@ -21,6 +40,18 @@ export async function listPayments({ month, year, status, employeeId, page = 1 }
 
   if (error) throw error
   return { data, count, totalPages: Math.ceil((count || 0) / PAGE_SIZE) }
+}
+
+export async function listAllPayments(filters) {
+  const firstPage = await listPayments({ ...filters, page: 1 })
+  if (firstPage.totalPages <= 1) return firstPage.data
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      listPayments({ ...filters, page: index + 2 })
+    )
+  )
+  return firstPage.data.concat(...remainingPages.map((result) => result.data))
 }
 
 export async function getEmployeePaymentHistory(employeeId) {
